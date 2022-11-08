@@ -1,37 +1,26 @@
 use crate::error::Error;
 use indexmap::IndexMap;
 use rand::Rng;
+use serde::Deserialize;
 use std::ops::Index;
 
-#[derive(Debug)]
-pub struct Word<'a> {
-    value: &'a str,
-    quote: &'a str,
-    keywords: Vec<&'a str>,
+#[derive(Debug, Deserialize)]
+pub struct Word {
+    value: String,
+    quote: String,
+    #[serde(default)]
+    keywords: Vec<String>,
 }
 
-impl<'a> Word<'a> {
-    pub fn create(value: &'a str, quote: &'a str, keywords: Vec<&'a str>) -> Self {
-        Word {
-            value,
-            quote,
-            keywords,
-        }
-    }
+#[derive(Debug, Default)]
+pub struct Data {
+    words: IndexMap<String, Word>,
+    keywords: IndexMap<String, Vec<String>>,
 }
 
-#[derive(Debug)]
-pub struct Data<'a> {
-    words: IndexMap<&'a str, Word<'a>>,
-    keywords: IndexMap<&'a str, Vec<&'a str>>,
-}
-
-impl<'a, const N: usize> From<[Word<'a>; N]> for Data<'a> {
-    fn from(words: [Word<'a>; N]) -> Self {
-        let mut data = Data {
-            words: Default::default(),
-            keywords: Default::default(),
-        };
+impl<const N: usize> From<[Word; N]> for Data {
+    fn from(words: [Word; N]) -> Self {
+        let mut data: Data = Default::default();
 
         for word in words {
             let _ = data.add(word);
@@ -41,24 +30,50 @@ impl<'a, const N: usize> From<[Word<'a>; N]> for Data<'a> {
     }
 }
 
-impl<'a> Data<'a> {
-    pub fn add(&mut self, word: Word<'a>) -> Result<(), Error> {
-        if self.words.contains_key(word.value) {
+impl Data {
+    pub fn from_path(path: &'static str) -> Self {
+        let mut data: Data = Default::default();
+
+        if let Ok(mut rdr) = csv::ReaderBuilder::new()
+            .has_headers(false)
+            .flexible(true)
+            .from_path(path)
+        {
+            let mut record = csv::StringRecord::new();
+
+            while rdr.read_record(&mut record).is_ok() && !record.is_empty() {
+                let word: Word = record.deserialize(None).unwrap();
+                let _ = data.add(word);
+            }
+        }
+
+        data
+    }
+
+    pub fn add(&mut self, word: Word) -> Result<(), Error> {
+        if self.words.contains_key(&word.value) {
             return Err(Error::WordAlreadyExists);
         }
 
         for keyword in &word.keywords {
-            self.keywords.entry(keyword).or_default().push(word.value);
+            self.keywords
+                .entry(keyword.clone())
+                .or_default()
+                .push(word.value.clone());
         }
 
-        self.words.insert(word.value, word);
+        self.words.insert(word.value.clone(), word);
 
         Ok(())
     }
 
-    pub fn get_random_word(&self) -> &Word {
+    pub fn get_random_word(&self) -> Result<&Word, Error> {
+        if self.words.is_empty() {
+            return Err(Error::ThereIsNoWord);
+        }
+
         let mut rng = rand::thread_rng();
 
-        self.words.index(rng.gen_range(0..self.words.len()))
+        Ok(self.words.index(rng.gen_range(0..self.words.len())))
     }
 }
