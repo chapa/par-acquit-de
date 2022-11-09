@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>{{ title }}</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Karla:wght@400;700&display=swap" rel="stylesheet">
+
+    <link href="/styles.css" rel="stylesheet">
+</head>
+
+<body>
+<div class="content {{ contentClasses | default (value="") }}">
+    {% block content %}{% endblock content %}
+</div>
+<footer>
+    <a href="/page/ajouter-votre-expression">Par acquit de complétion ajoutez votre expression</a>
+    <a href="/page/rechercher">Recherche</a>
+    <a href="/page/rechercher-par-mot-cle">Recherche par mot clés</a>
+    <a href="/page/a-propos">À propos</a>
+</footer>
+</body>
+
+</html>
