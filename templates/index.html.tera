@@ -1,0 +1,12 @@
+{% extends "base" %}
+
+{% block content %}
+    <h1>Par acquit de <a href="/{{ value | urlencode }}">{{ value }}</a></h1>
+    <p>“ {{ quote }}</p>
+    <div class="keywords">
+        <p>Mots clés</p>
+        {% for keyword in keywords %}
+            <a  class="keyword" href="/page/rechercher-par-mot-cle/{{ keyword | urlencode }}">{{ keyword }}</a>
+        {% endfor %}
+    </div>
+{% endblock %}

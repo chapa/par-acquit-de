@@ -12,6 +12,20 @@ pub struct Word {
     keywords: Vec<String>,
 }
 
+impl Word {
+    pub fn get_value(&self) -> &String {
+        &self.value
+    }
+
+    pub fn get_keywords(&self) -> &Vec<String> {
+        &self.keywords
+    }
+
+    pub fn get_quote(&self) -> &String {
+        &self.quote
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct Data {
     words: IndexMap<String, Word>,
