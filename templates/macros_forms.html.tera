@@ -1,0 +1,30 @@
+{% macro value_for(name) %}
+    {%- if name in form.values -%}
+        {{- form.values | get(key=name) | first -}}
+    {%- endif -%}
+{% endmacro %}
+
+{% macro errors_for(name) %}
+    {%- if name in form.errors -%}
+        {% set field_errors = form.errors | get(key=name) %}
+        {% for error in field_errors %}
+            <p class="error">{{ error.msg }}</p>
+        {% endfor %}
+    {%- endif -%}
+{% endmacro %}
+
+{% macro input(type, label, name, placeholder, value="") %}
+    <div class="input-group">
+        <label for="{{ name }}">{{ label }}</label>
+        <input
+                type="{{ type }}"
+                id="{{ name }}"
+                value="{{ self::value_for(name=name) }}"
+                placeholder="{{ placeholder }}"
+                name="{{ name }}"
+{#                onchange="this.setAttribute('value', this.value);"#}
+                {% if name in form.errors %} class="error" {% endif %}
+        >
+        {{ self::errors_for(name=name) }}
+    </div>
+{% endmacro input %}

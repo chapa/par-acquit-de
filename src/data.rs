@@ -1,6 +1,7 @@
 use crate::error::Error;
 use indexmap::IndexMap;
 use rand::Rng;
+use rocket::form::{self, Error as FormError};
 use serde::Deserialize;
 use std::ops::Index;
 
@@ -12,7 +13,59 @@ pub struct Word {
     keywords: Vec<String>,
 }
 
+#[derive(Debug, FromForm)]
+pub struct AddWordForm<'a> {
+    #[field(validate = validate_value())]
+    pub value: &'a str,
+    pub quote: &'a str,
+    pub keywords: &'a str,
+}
+
+pub fn validate_value<'v>(value: &str) -> form::Result<'v, ()> {
+    if value.len() < 4 {
+        return Err(FormError::validation(
+            "L'expression doit faire au moins 4 caractères",
+        ))?;
+    }
+
+    if !value.starts_with("co")
+        || value
+            .chars()
+            .nth(2)
+            .filter(|c| c == &'n' || c == &'m')
+            .is_none()
+    {
+        return Err(FormError::validation(
+            "L'expression doit commencer par co et doit avoir comme troisième lettre m ou n",
+        ))?;
+    }
+
+    if value.chars().nth(2).unwrap() == value.chars().nth(3).unwrap() {
+        return Err(FormError::validation(
+            "Les deuxième et troisième lettre doivent être différentes",
+        ))?;
+    }
+
+    Ok(())
+}
+
 impl Word {
+    pub fn create(value: String, quote: String, keywords: Vec<String>) -> Self {
+        Word {
+            value,
+            quote,
+            keywords,
+        }
+    }
+
+    pub fn from(form: &AddWordForm) -> Self {
+        Word {
+            value: form.value.to_string(),
+            quote: form.quote.to_string(),
+            keywords: form.keywords.split(',').map(|s| s.to_string()).collect(),
+        }
+    }
+
     pub fn get_value(&self) -> &String {
         &self.value
     }
@@ -89,5 +142,11 @@ impl Data {
         let mut rng = rand::thread_rng();
 
         Ok(self.words.index(rng.gen_range(0..self.words.len())))
+    }
+
+    pub fn get_word(&self, word: &str) -> Result<&Word, Error> {
+        self.words
+            .get(word.to_lowercase().as_str())
+            .ok_or(Error::ThereIsNoWord)
     }
 }
