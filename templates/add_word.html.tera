@@ -1,0 +1,34 @@
+{% import "macros_forms" as m %}
+{% extends "base" %}
+
+{% block content %}
+    <h1>Ajoutez votre expression</h1>
+
+    <form method="post" enctype="multipart/form-data">
+
+        {{ m::input(
+            label="Expression",
+            type="text",
+            name="value",
+            placeholder="Tapez votre expression, elle doit commencer et se prononcer en ”con”"
+        )}}
+
+        {{ m::input(
+            label="Exemple",
+            type="text",
+            name="quote",
+            placeholder="Tapez un exemple d’utilisation de votre expression"
+        )}}
+
+        {{ m::input(
+            label="Mot clés (séparés par des virgules)",
+            type="text",
+            name="keywords",
+            placeholder="Tapez les mots clés qui décrivent votre expression, séparés par une virgule"
+        )}}
+
+        <div class="form-submit">
+            <button type="submit">Ajouter</button>
+        </div>
+    </form>
+{% endblock %}

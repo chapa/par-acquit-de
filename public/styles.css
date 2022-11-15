@@ -274,6 +274,7 @@ p.results-phrase {
 }
 
 form {
+	margin-top: 24px;
 	display: flex;
 	flex-direction: column;
 	row-gap: 16px;
