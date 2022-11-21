@@ -4,7 +4,6 @@ FROM rust:latest AS build
 
 ARG TARGET=aarch64-unknown-linux-musl
 
-# Download the target for static linking.
 RUN rustup target add $TARGET
 
 
@@ -16,7 +15,6 @@ RUN mkdir src \
     && cargo  build --target $TARGET --release \
     && rm -rf src
 
-# Copy the source and build the application.
 COPY . ./
 
 RUN cargo install --target $TARGET --path . \
