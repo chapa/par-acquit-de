@@ -34,4 +34,9 @@ COPY --from=build /usr/src/par-acquit-de/par-acquit-de .
 COPY --from=build /usr/src/par-acquit-de/public ./public
 COPY --from=build /usr/src/par-acquit-de/templates ./templates
 
+COPY data.base.csv data.csv
+
+
+
+
 CMD ["./par-acquit-de"]

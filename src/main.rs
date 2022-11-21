@@ -1,11 +1,12 @@
 #[macro_use]
 extern crate rocket;
 
+
 mod data;
 mod error;
 
 use crate::data::Data;
-use rocket::{Build, Rocket, State};
+use rocket::{Build, Rocket, State, Config};
 use rocket::fs::FileServer;
 use rocket_dyn_templates::{context, Template};
 
@@ -24,6 +25,9 @@ fn index(data: &State<Data>) -> Template {
 
 #[launch]
 fn rocket() -> Rocket<Build> {
+
+    println!("debug port: {}", Config::release_default().port);
+
     rocket::build()
         .manage(Data::from_path("data.csv"))
         .mount("/", FileServer::from("public/"))
