@@ -1,6 +1,8 @@
 {% import "macros_forms" as m %}
 {% extends "base" %}
 
+{% block title %}Ajouter une expression{% endblock %}
+
 {% block content %}
     <h1>Ajoutez votre expression</h1>
 

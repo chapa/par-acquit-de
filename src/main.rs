@@ -21,7 +21,6 @@ fn index(data: &State<Data>) -> Template {
             value: word.get_value(),
             quote: word.get_quote(),
             keywords: word.get_keywords(),
-            title: format!("Par acquit de {}", word.get_value()),
         },
     )
 }
@@ -30,12 +29,11 @@ fn index(data: &State<Data>) -> Template {
 fn word(word: &str, data: &State<Data>) -> Option<Template> {
     match data.get_word(word) {
         Ok(word) => Some(Template::render(
-            "index",
+            "word",
             context! {
                 value: word.get_value(),
                 quote: word.get_quote(),
                 keywords: word.get_keywords(),
-                title: format!("Par acquit de {}", word.get_value()),
             },
         )),
         Err(_) => None,
@@ -47,7 +45,6 @@ fn word(word: &str, data: &State<Data>) -> Option<Template> {
 // fn add_word() -> Template {
 //     Template::render("add_word", context! {
 //         form: &Context::default(),
-//         title: "Ajouter une expression",
 //     })
 // }
 
@@ -76,7 +73,6 @@ fn word(word: &str, data: &State<Data>) -> Option<Template> {
 //
 //     Err(Template::render("add_word", context! {
 //         form: ctx,
-//         title: "Ajouter une expression",
 //     }))
 // }
 
