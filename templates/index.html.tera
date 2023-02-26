@@ -1,3 +1,12 @@
 {% extends "word" %}
 
 {% block title %}Par acquit de : trouvez votre "par acquit" !{% endblock %}
+
+{% block content %}
+    {{ super() }}
+
+    <script type="application/javascript">
+        const value = document.querySelector('h1 > a').textContent;
+        document.title = `Par acquit de ${value}`;
+    </script>
+{% endblock %}
