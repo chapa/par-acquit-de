@@ -40,41 +40,46 @@ fn word(word: &str, data: &State<Data>) -> Option<Template> {
     }
 }
 
-//
-// #[get("/page/ajouter-votre-expression")]
-// fn add_word() -> Template {
-//     Template::render("add_word", context! {
-//         form: &Context::default(),
-//     })
-// }
+#[get("/page/ajouter-votre-expression")]
+fn add_word() -> Template {
+    Template::render(
+        "add_word",
+        context! {
+            form: &Context::default(),
+        },
+    )
+}
 
-// #[post("/page/ajouter-votre-expression", data = "<form>")]
-// fn post_add_word(data: &mut State<Data>, mut form: Form<Contextual<'_, AddWordForm>>) -> Result<Redirect, Template > {
-//     // let value = form.value.as_mut().unwrap();
-//     let ctx = &mut form.context;
-//
-//
-//     if ctx.errors().collect::<Vec<&Error<'_>>>().is_empty() {
-//         let word = Word::from(form.value.as_mut().unwrap());
-//         let redirect_url = format!("/{}", word.get_value());
-//
-//         match data.add(word) {
-//             Ok(_) => {
-//                 return Ok(Redirect::to(uri!("/tamer")))
-//             }
-//             Err(e) => match e {
-//                 error::Error::WordAlreadyExists => ctx.push_error(
-//                     Error::validation("L'expression existe déjà").with_name("value")
-//                 ),
-//                 _ => {}
-//             }
-//         }
-//     }
-//
-//     Err(Template::render("add_word", context! {
-//         form: ctx,
-//     }))
-// }
+#[post("/page/ajouter-votre-expression", data = "<form>")]
+fn post_add_word(
+    data: &State<Data>,
+    mut form: Form<Contextual<'_, AddWordForm>>,
+) -> Result<Redirect, Template> {
+    if let Some(ref value) = form.value {
+        let word = Word::from(value);
+        let redirect_url = format!("/{}", word.get_value());
+
+        match data.add(word) {
+            Ok(_) => return Ok(Redirect::to(redirect_url)),
+            Err(e) => match e {
+                error::Error::WordAlreadyExists => form
+                    .context
+                    .push_error(Error::validation("L'expression existe déjà").with_name("value")),
+                e => form.context.push_error(Error::validation(format!(
+                    "Une erreur imprévue est survenue ({:?})",
+                    e
+                ))),
+            },
+        }
+    }
+
+    Err(Template::render(
+        "add_word",
+        context! {
+            form: &form.context,
+        },
+    ))
+}
 
 #[launch]
 fn rocket() -> Rocket<Build> {
@@ -83,12 +88,6 @@ fn rocket() -> Rocket<Build> {
     rocket::build()
         .manage(Data::from_path("data.csv"))
         .mount("/public", FileServer::from("public/"))
-        .mount(
-            "/",
-            routes![
-                index, word
-                // add_word, post_add_word,
-            ],
-        )
+        .mount("/", routes![index, word, add_word, post_add_word,])
         .attach(Template::fairing())
 }

@@ -4,8 +4,9 @@ use rand::Rng;
 use rocket::form::{self, Error as FormError};
 use serde::Deserialize;
 use std::ops::Index;
+use std::sync::RwLock;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Word {
     value: String,
     quote: String,
@@ -50,14 +51,6 @@ pub fn validate_value<'v>(value: &str) -> form::Result<'v, ()> {
 }
 
 impl Word {
-    pub fn create(value: String, quote: String, keywords: Vec<String>) -> Self {
-        Word {
-            value,
-            quote,
-            keywords,
-        }
-    }
-
     pub fn from(form: &AddWordForm) -> Self {
         Word {
             value: form.value.to_string(),
@@ -80,14 +73,17 @@ impl Word {
 }
 
 #[derive(Debug, Default)]
-pub struct Data {
+struct InnerData {
     words: IndexMap<String, Word>,
     keywords: IndexMap<String, Vec<String>>,
 }
 
+#[derive(Debug, Default)]
+pub struct Data(RwLock<InnerData>);
+
 impl<const N: usize> From<[Word; N]> for Data {
     fn from(words: [Word; N]) -> Self {
-        let mut data: Data = Default::default();
+        let data: Data = Default::default();
 
         for word in words {
             let _ = data.add(word);
@@ -99,7 +95,7 @@ impl<const N: usize> From<[Word; N]> for Data {
 
 impl Data {
     pub fn from_path(path: &'static str) -> Self {
-        let mut data: Data = Default::default();
+        let data: Data = Default::default();
 
         if let Ok(mut rdr) = csv::ReaderBuilder::new()
             .has_headers(false)
@@ -117,36 +113,51 @@ impl Data {
         data
     }
 
-    pub fn add(&mut self, word: Word) -> Result<(), Error> {
-        if self.words.contains_key(&word.value) {
-            return Err(Error::WordAlreadyExists);
+    pub fn add(&self, word: Word) -> Result<(), Error> {
+        match self.0.write() {
+            Ok(mut data) => {
+                if data.words.contains_key(&word.value) {
+                    return Err(Error::WordAlreadyExists);
+                }
+
+                for keyword in &word.keywords {
+                    data.keywords
+                        .entry(keyword.clone())
+                        .or_default()
+                        .push(word.value.clone());
+                }
+
+                data.words.insert(word.value.clone(), word);
+
+                Ok(())
+            }
+            Err(_) => Err(Error::LockPoisoned),
         }
-
-        for keyword in &word.keywords {
-            self.keywords
-                .entry(keyword.clone())
-                .or_default()
-                .push(word.value.clone());
-        }
-
-        self.words.insert(word.value.clone(), word);
-
-        Ok(())
     }
 
-    pub fn get_random_word(&self) -> Result<&Word, Error> {
-        if self.words.is_empty() {
-            return Err(Error::ThereIsNoWord);
+    pub fn get_random_word(&self) -> Result<Word, Error> {
+        match self.0.read() {
+            Ok(data) => {
+                if data.words.is_empty() {
+                    return Err(Error::ThereIsNoWord);
+                }
+
+                let mut rng = rand::thread_rng();
+
+                Ok(data.words.index(rng.gen_range(0..data.words.len())).clone())
+            }
+            Err(_) => Err(Error::LockPoisoned),
         }
-
-        let mut rng = rand::thread_rng();
-
-        Ok(self.words.index(rng.gen_range(0..self.words.len())))
     }
 
-    pub fn get_word(&self, word: &str) -> Result<&Word, Error> {
-        self.words
-            .get(word.to_lowercase().as_str())
-            .ok_or(Error::ThereIsNoWord)
+    pub fn get_word(&self, word: &str) -> Result<Word, Error> {
+        match self.0.read() {
+            Ok(data) => data
+                .words
+                .get(word.to_lowercase().as_str())
+                .map(Clone::clone)
+                .ok_or(Error::ThereIsNoWord),
+            Err(_) => Err(Error::LockPoisoned),
+        }
     }
 }

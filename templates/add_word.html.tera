@@ -6,8 +6,9 @@
 {% block content %}
     <h1>Ajoutez votre expression</h1>
 
-    <form method="post" enctype="multipart/form-data">
+    {{ m::global_errors() }}
 
+    <form method="post" enctype="multipart/form-data">
         {{ m::input(
             label="Expression",
             type="text",

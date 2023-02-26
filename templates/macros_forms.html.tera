@@ -13,6 +13,14 @@
     {%- endif -%}
 {% endmacro %}
 
+{% macro global_errors() %}
+    {% for error in form.form_errors %}
+        <div class="error">
+            {{ error.msg }}
+        </div>
+    {% endfor %}
+{% endmacro %}
+
 {% macro input(type, label, name, placeholder, value="") %}
     <div class="input-group">
         <label for="{{ name }}">{{ label }}</label>
