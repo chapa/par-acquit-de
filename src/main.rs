@@ -25,26 +25,23 @@ fn index(data: &State<Data>) -> Template {
         },
     )
 }
-//
-// #[get("/<word>")]
-// fn word(word: &str, data: &State<Data>) -> Result<Template, Redirect> {
-//     let result = data.get_word(word);
-//
-//     if result.is_err() {
-//         match result.err().unwrap() {
-//             error::Error::ThereIsNoWord => return Err(Redirect::to("/404")),
-//             _ => {}
-//         }
-//     }
-//
-//     Ok(Template::render("index", context! {
-//         value: result.unwrap().get_value(),
-//         quote: result.unwrap().get_quote(),
-//         keywords: result.unwrap().get_keywords(),
-//         title: format!("Par acquit de {}", result.unwrap().get_value()),
-//     }))
-// }
-//
+
+#[get("/<word>")]
+fn word(word: &str, data: &State<Data>) -> Option<Template> {
+    match data.get_word(word) {
+        Ok(word) => Some(Template::render(
+            "index",
+            context! {
+                value: word.get_value(),
+                quote: word.get_quote(),
+                keywords: word.get_keywords(),
+                title: format!("Par acquit de {}", word.get_value()),
+            },
+        )),
+        Err(_) => None,
+    }
+}
+
 //
 // #[get("/page/ajouter-votre-expression")]
 // fn add_word() -> Template {
@@ -89,11 +86,11 @@ fn rocket() -> Rocket<Build> {
 
     rocket::build()
         .manage(Data::from_path("data.csv"))
-        .mount("/", FileServer::from("public/"))
+        .mount("/public", FileServer::from("public/"))
         .mount(
             "/",
             routes![
-                index,
+                index, word
                 // add_word, post_add_word,
             ],
         )
