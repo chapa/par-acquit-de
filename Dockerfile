@@ -4,7 +4,7 @@ COPY . .
 
 RUN ls -laR
 RUN cargo install --path .
-FROM debian:bullseye-slim
+FROM ubuntu:latest
 RUN uname -a
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update & apt-get install -y ca-certificates libssl-dev extra-runtime-dependencies & rm -rf /var/lib/apt/lists/*
