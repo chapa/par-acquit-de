@@ -11,6 +11,6 @@ COPY --from=builder /usr/local/cargo/bin/par-acquit-de /usr/local/bin/par-acquit
 WORKDIR /app
 
 COPY --from=builder /usr/src/par-acquit-de/public /app/public
-COPY --from=builder /usr/src/par-acquit-de/src/templates /app/templates
+COPY --from=builder /usr/src/par-acquit-de/templates /app/templates
 
 CMD ["par-acquit-de"]
