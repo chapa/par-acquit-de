@@ -89,7 +89,7 @@
 
                     tr.innerHTML = `
                         <td style="padding: 0 0px  20px">${user.name}</td>
-                        <td style="padding: 0 15px 20px">dors ${user.days} nuits pour</td>
+                        <td style="padding: 0 15px 20px">${user.days} nuits</td>
                         <td style="padding: 0 15px 20px"><a  class="keyword" href="">${user.cost.toFixed(2)} €</a></td>
                         <td style="padding: 0 15px 20px">${user.costPerDay.toFixed(2)} €/nuit</td>
                     `;
