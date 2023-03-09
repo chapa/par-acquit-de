@@ -6,7 +6,7 @@ FROM rust:latest AS build
 ARG TARGET=aarch64-unknown-linux-musl
 
 RUN rustup target add $TARGET
-RUN apt update && apt install -y musl-tools musl-dev
+RUN apt update && apt install -y musl-tools musl-dev libssl-dev
 RUN update-ca-certificates
 
 
