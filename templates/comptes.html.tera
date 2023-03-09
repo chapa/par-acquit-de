@@ -73,7 +73,7 @@
             return { users: usersData, dates };
         }
 
-        fetch(window.location.protocol + '//' + window.location.host + '/download/ceuse-dates')
+        fetch("https://idontlikerust.cr.par-acquit.de/")
             .then(response => response.text())
             .then(text => {
                 // Store the CSV content in a variable
