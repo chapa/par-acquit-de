@@ -1,6 +1,8 @@
 FROM rust:latest as builder
 WORKDIR /usr/src/par-acquit-de
 COPY . .
+
+RUN ls -laR
 RUN cargo install --path .
 FROM debian:bullseye-slim
 RUN uname -a
