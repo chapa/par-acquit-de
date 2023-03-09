@@ -5,15 +5,12 @@ mod data;
 mod error;
 
 use crate::data::{AddWordForm, Data, Word};
-use reqwest::ClientBuilder;
 use rocket::form::{Context, Contextual, Error, Form};
 use rocket::fs::FileServer;
-use rocket::http::RawStr;
 use rocket::response::status;
 use rocket::response::Redirect;
 use rocket::{Build, Config, Rocket, State};
 use rocket_dyn_templates::{context, Template};
-use std::time::Duration;
 
 #[get("/")]
 fn index(data: &State<Data>) -> Template {

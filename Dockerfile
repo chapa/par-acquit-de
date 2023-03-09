@@ -1,44 +1,8 @@
-
-
-FROM rust:latest AS build
-
-
-ARG TARGET=aarch64-unknown-linux-musl
-
-RUN rustup target add $TARGET
-RUN apt update && apt install -y musl-tools musl-dev libssl-dev
-RUN update-ca-certificates
-
-
+FROM rust:latest as builder
 WORKDIR /usr/src/par-acquit-de
-
-COPY Cargo.toml Cargo.lock ./
-RUN mkdir src \
-    && echo "// dummy file" > src/lib.rs \
-    && cargo  build --target $TARGET --release \
-    && rm -rf src
-
-COPY . ./
-
-RUN cargo install --target $TARGET --path . \
-    && cp ./target/$TARGET/release/par-acquit-de . \
-    && rm -rf target
-
-CMD ["./par-acquit-de"]
-
-
-FROM alpine
-
-WORKDIR app
-
-COPY --from=build /usr/src/par-acquit-de/par-acquit-de .
-COPY --from=build /usr/src/par-acquit-de/public ./public
-COPY --from=build /usr/src/par-acquit-de/templates ./templates
-
-COPY data.base.csv data.csv
-
-
-
-
-CMD ["./par-acquit-de"]
-
+COPY . .
+RUN cargo install --path .
+FROM debian:buster-slim
+RUN apt-get update & apt-get install -y extra-runtime-dependencies & rm -rf /var/lib/apt/lists/*
+COPY --from=builder /usr/local/cargo/bin/par-acquit-de /usr/local/bin/par-acquit-de
+CMD ["par-acquit-de"]
