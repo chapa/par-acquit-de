@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -40,6 +41,7 @@ func main() {
 
 	}))
 
+	fmt.Println("listening on 8080")
 	http.ListenAndServe(":8080", nil)
 
 }
