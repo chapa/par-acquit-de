@@ -12,6 +12,6 @@ WORKDIR /app
 
 COPY --from=builder /usr/src/par-acquit-de/public /app/public
 COPY --from=builder /usr/src/par-acquit-de/templates /app/templates
-COPY --from=builder /usr/src/par-acquit-de/data.base.csv /app/data.base.csv
+COPY --from=builder /usr/src/par-acquit-de/data.base.csv /app/data.csv
 
 CMD ["par-acquit-de"]
