@@ -5,11 +5,15 @@ mod data;
 mod error;
 
 use crate::data::{AddWordForm, Data, Word};
+use reqwest::ClientBuilder;
 use rocket::form::{Context, Contextual, Error, Form};
 use rocket::fs::FileServer;
+use rocket::http::RawStr;
+use rocket::response::status;
 use rocket::response::Redirect;
 use rocket::{Build, Config, Rocket, State};
 use rocket_dyn_templates::{context, Template};
+use std::time::Duration;
 
 #[get("/")]
 fn index(data: &State<Data>) -> Template {
@@ -50,6 +54,18 @@ fn add_word() -> Template {
     )
 }
 
+#[get("/page/comptes")]
+fn comptes() -> Template {
+    Template::render("comptes", context! {})
+}
+
+#[get("/download/ceuse-dates")]
+async fn dates_ceuse() -> status::Accepted<String> {
+    let response = reqwest::get("https://framadate.org/exportcsv.php?poll=4eF5QE9cHUch9HF1").await.unwrap().text().await.unwrap();
+
+    status::Accepted(Some(response))
+}
+
 #[post("/page/ajouter-votre-expression", data = "<form>")]
 fn post_add_word(
     data: &State<Data>,
@@ -88,6 +104,9 @@ fn rocket() -> Rocket<Build> {
     rocket::build()
         .manage(Data::from_path("data.csv"))
         .mount("/public", FileServer::from("public/"))
-        .mount("/", routes![index, word, add_word, post_add_word,])
+        .mount(
+            "/",
+            routes![index, word, add_word, post_add_word, comptes, dates_ceuse],
+        )
         .attach(Template::fairing())
 }

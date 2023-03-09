@@ -1,0 +1,117 @@
+{% extends "base" %}
+
+{% block title %}Par acquit de Comptes{% endblock %}
+
+{% block content %}
+    <h1>Par acquit de Comptes</h1>
+    <p style="padding-bottom: 10px">Calcul des comptes pour le logement à Ceuse ! Plus vous venez, plus le prix à la nuit est intéressant :)</p>
+    <div class="keywords">
+        <table>
+            <thead>
+            <tr>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody id="in">
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function distributeCost(numDays, friends) {
+            const totalDays = friends.reduce((acc, friend) => acc + friend.days, 0);
+            const pricePerDay = 2000 / numDays;
+
+            // Calculate the share for each friend
+            const shares = friends.map(friend => {
+                const cost = pricePerDay * friend.days * (1 - (friend.days - 1) / totalDays);
+                return {
+                    name: friend.name,
+                    days: friend.days,
+                    cost: cost
+                };
+            });
+
+            // Calculate the total share and adjust for rounding errors
+            const totalShare = shares.reduce((acc, share) => acc + share.cost, 0);
+            const adjustment = 2000 - totalShare;
+            const adjustedShares = shares.map(share => {
+                const adjustedCost = share.cost + adjustment * (share.cost / totalShare);
+                const costPerDay = adjustedCost / share.days;
+                return {
+                    ...share,
+                    costPerDay: costPerDay,
+                    cost: adjustedCost
+                };
+            });
+
+            return adjustedShares;
+        }
+
+        function parseCSV(csv) {
+            const rows = csv.trim().split('\n');
+            const dates = rows[0].split(',')
+                .slice(1, -1)
+                .map(date => date.replaceAll('"', ''));
+
+
+            const users = rows.slice(2).map(row => row.split(',')[0]);
+            const data = rows.slice(2).map(row => row.split(',').slice(1));
+            const usersData = users.map((user, index) => {
+                const infos = data[index].reduce((acc, value) => {
+                    if (value.includes("Oui")) {
+                        acc.days += 1;
+                        acc.dates.push(dates[index]);
+                    }
+                    return acc;
+                }, { days: 0, dates: [] });
+                return { name: user.replaceAll('"', ""), ...infos };
+            });
+            return { users: usersData, dates };
+        }
+
+        fetch('http://' + window.location.host + '/download/ceuse-dates')
+            .then(response => response.text())
+            .then(text => {
+                // Store the CSV content in a variable
+                const csv = text;
+                const csvParsed = parseCSV(csv);
+
+                const costs = distributeCost(csvParsed.dates.length, csvParsed.users).sort(
+                    (a, b) => b.days - a.days
+                )
+
+                costs.forEach(user => {
+                    const tr = document.createElement('tr');
+
+                    tr.innerHTML = `
+                        <td style="padding: 0 0px  20px">${user.name}</td>
+                        <td style="padding: 0 15px 20px">dors ${user.days} nuits pour</td>
+                        <td style="padding: 0 15px 20px"><a  class="keyword" href="">${user.cost.toFixed(2)} €</a></td>
+                        <td style="padding: 0 15px 20px">${user.costPerDay.toFixed(2)} €/nuit</td>
+                    `;
+                    document.getElementById('in').appendChild(tr);
+                });
+
+                // add total line
+                const tr = document.createElement('tr');
+                const total = costs.reduce((acc, user) => acc + (+user.cost.toFixed(2)), 0);
+
+                tr.innerHTML = `
+                    <td style="padding: 0 0px  20px">Total</td>
+                    <td style="padding: 0 15px 20px"></td>
+                    <td style="padding: 0 15px 20px"><a  class="keyword" href="">${total.toFixed(2)} €</a></td>
+                    <td style="padding: 0 15px 20px"></td>
+                `;
+
+                document.getElementById('in').appendChild(tr);
+            })
+            .catch(error => console.error(error));
+    </script>
+{% endblock %}
+
+
+
