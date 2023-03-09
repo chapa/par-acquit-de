@@ -2,9 +2,12 @@
 
 FROM rust:latest AS build
 
+
 ARG TARGET=aarch64-unknown-linux-musl
 
 RUN rustup target add $TARGET
+RUN apt update && apt install -y musl-tools musl-dev
+RUN update-ca-certificates
 
 
 WORKDIR /usr/src/par-acquit-de
@@ -38,3 +41,4 @@ COPY data.base.csv data.csv
 
 
 CMD ["./par-acquit-de"]
+
